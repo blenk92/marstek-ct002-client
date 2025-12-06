@@ -1,13 +1,15 @@
 # Marstek CT002 Client
-This tool emulates Marstek b2500 client on a ct002 marstek meter reader. It reads the power values (per line and combined) and publishs them to mqtt. It directly connects to the ct002 without any modification needed on the b2500 (well, I currenlty just tested with a ct002 that is already added to my marstek account)
+This tool emulates Marstek b2500 client on a ct002 marstek meter reader. It reads the power values (per line and combined) and publishs them to mqtt. It directly connects to the ct002 without any modification needed on the b2500 (well, I currenlty just tested with a ct002 that is already added to my marstek account. So not entirely sure if that is necessary...)
+
+The motivation is to be able to use the marstek ct002 stand-alone and to deal with connection problems that are caused by bad connection and the udp based protocol.
 
 Mqtt topics:
 | Topic | Details |
 | -------- | ------- |
-| `marstek-power-meter/<power meter id>/A` | Value of A phase in Watts |
-| `marstek-power-meter/<power meter id>/B` | Value of B phase in Watts |
-| `marstek-power-meter/<power meter id>/C` | Value of C phase in Watts |
-| `marstek-power-meter/<power meter id>/ALL` | Total value of all phases in Watts |
+| `marstek-power-meter/<power meter id>/A` | Value of A phase in Watt |
+| `marstek-power-meter/<power meter id>/B` | Value of B phase in Watt |
+| `marstek-power-meter/<power meter id>/C` | Value of C phase in Watt |
+| `marstek-power-meter/<power meter id>/ALL` | Total value of all phases in Watt |
 
 
 ## Configuration
@@ -51,7 +53,6 @@ services:
 
 ### Message Checksum
 The messages send to the ct002 seem to have some kind of checksum in the very last byte. I didn't want to spent too much time to figure out how exactly this is calculated. This is why i added a brute force mechanism to the script (which just checks values until it finds the correct one if `MARSTEK_MSG_CHECKSUM` is not given in the configuration). It only takes a few minutes to do so. If you have the correct value you can also just set it via `MARSTEK_MSG_CHECKSUM` to avoid the the brute forcing of the value on every start up
-
 
 ## Related work
 There is some related repos which its worth looking into:
