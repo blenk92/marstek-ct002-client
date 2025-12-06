@@ -51,3 +51,9 @@ services:
 
 ### Message Checksum
 The messages send to the ct002 seem to have some kind of checksum in the very last byte. I didn't want to spent too much time to figure out how exactly this is calculated. This is why i added a brute force mechanism to the script (which just checks values until it finds the correct one if `MARSTEK_MSG_CHECKSUM` is not given in the configuration). It only takes a few minutes to do so. If you have the correct value you can also just set it via `MARSTEK_MSG_CHECKSUM` to avoid the the brute forcing of the value on every start up
+
+
+## Related work
+There is some related repos which its worth looking into:
+* https://github.com/tomquist/hm2mqtt
+* https://github.com/tomquist/hame-relay
