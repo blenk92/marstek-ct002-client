@@ -17,6 +17,7 @@ CONNECTION_READ_TIMEOUT = float(os.getenv("CONNECTION_READ_TIMEOUT") or 0.5)
 MARSTEK_MSG_CHECKSUM = os.getenv("MARSTEK_MSG_CHECKSUM") 
 VERBOSE_PRINT = bool(os.getenv("VERBOSE_PRINT"))
 
+
 class PowerMeter:
     def __init__(self, ip, meter_id, checksum=None):
         self.A = 0
@@ -106,10 +107,10 @@ if __name__ == "__main__":
     while True:
         update_needed = pm.update()
         if update_needed:
-            mqttc.publish(f"marstek-power-meter/acd929a73dd4/A", pm.A, qos=2)
-            mqttc.publish(f"marstek-power-meter/acd929a73dd4/B", pm.B, qos=2)
-            mqttc.publish(f"marstek-power-meter/acd929a73dd4/C", pm.C, qos=2)
-            mqttc.publish(f"marstek-power-meter/acd929a73dd4/ALL", pm.All, qos=2)
+            mqttc.publish(f"marstek-power-meter/{MARSTEK_METER_ID}/A", pm.A, qos=2)
+            mqttc.publish(f"marstek-power-meter/{MARSTEK_METER_ID}/B", pm.B, qos=2)
+            mqttc.publish(f"marstek-power-meter/{MARSTEK_METER_ID}/C", pm.C, qos=2)
+            mqttc.publish(f"marstek-power-meter/{MARSTEK_METER_ID}/ALL", pm.All, qos=2)
         time.sleep(0.3)
 
     mqttc.loop_stop()
