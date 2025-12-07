@@ -122,7 +122,7 @@ class PowerMeter:
         ALL = answer_split[8]
 
         sock.close() 
-        return A, B, C, ALL
+        return int(A), int(B), int(C), int(ALL)
 
     def __power_value_debounce(self, new_A, new_B, new_C, new_ALL):
         if new_A -2 <= self.A and self.A <= new_A + 2:
@@ -163,7 +163,7 @@ class PowerMeter:
         if not update_needed:
             self.update_counter += 1
         else:
-            if self.__power_value_debounce(A, B, C, All):
+            if not self.__power_value_debounce(A, B, C, All):
                 update_needed = False
             else:
                 self.A = A
