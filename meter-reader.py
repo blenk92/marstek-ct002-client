@@ -15,6 +15,7 @@ MARSTEK_METER_IP = os.getenv("MARSTEK_METER_IP")
 MARSTEK_FAKE_CLIENT_ID = os.getenv("MARSTEK_FAKE_CLIENT_ID") or "cafecafecafe"
 CONNECTION_READ_TIMEOUT = float(os.getenv("CONNECTION_READ_TIMEOUT") or 0.5)
 MARSTEK_MSG_CHECKSUM = os.getenv("MARSTEK_MSG_CHECKSUM") 
+MARSTEK_POWER_VALUE_DEBOUNCE = int(os.getenv("MARSTEK_POWER_VALUE_DEBOUNCE") or 2)
 VERBOSE_PRINT = bool(os.getenv("VERBOSE_PRINT"))
 
 class HA_CONFIG:
@@ -125,17 +126,16 @@ class PowerMeter:
         return int(A), int(B), int(C), int(ALL)
 
     def __power_value_debounce(self, new_A, new_B, new_C, new_ALL):
-        if new_A -2 <= self.A and self.A <= new_A + 2:
-            return True
-        if new_B -2 <= self.B and self.B <= new_B + 2:
-            return True
-        if new_C -2 <= self.C and self.C <= new_C + 2:
-            return True
-        if new_ALL -2 <= self.All and self.All <= new_ALL + 2:
-            return True
+        if new_A - MARSTEK_POWER_VALUE_DEBOUNCE <= self.A and self.A <= new_A + MARSTEK_POWER_VALUE_DEBOUNCE:
+            return False
+        if new_B - MARSTEK_POWER_VALUE_DEBOUNCE <= self.B and self.B <= new_B + MARSTEK_POWER_VALUE_DEBOUNCE:
+            return False
+        if new_C - MARSTEK_POWER_VALUE_DEBOUNCE <= self.C and self.C <= new_C + MARSTEK_POWER_VALUE_DEBOUNCE:
+            return False
+        if new_ALL - MARSTEK_POWER_VALUE_DEBOUNCE <= self.All and self.All <= new_ALL + MARSTEK_POWER_VALUE_DEBOUNCE:
+            return False
 
-        return False
-
+        return True
 
     def update(self):
         A, B, C, All = self._read_power_meter(self.message)
@@ -159,21 +159,19 @@ class PowerMeter:
 
         if VERBOSE_PRINT:
             print(f"Read A: {A}, B: {B}, C: {C}, ALL: {All}")
-        update_needed = (self.A, self.B, self.C, self.All) != (A, B, C, All)
-        if not update_needed:
-            self.update_counter += 1
-        else:
-            if not self.__power_value_debounce(A, B, C, All):
-                update_needed = False
-            else:
-                self.A = A
-                self.B = B
-                self.C = C
-                self.All = All
+        update_needed = self.__power_value_debounce(A, B, C, All)
 
         if self.update_counter >= 20:
             self.update_counter = 0
             update_needed = True
+
+        if not update_needed:
+            self.update_counter += 1
+        else:
+            self.A = A
+            self.B = B
+            self.C = C
+            self.All = All
 
         return update_needed, availability_update_needed
 

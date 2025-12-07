@@ -28,6 +28,7 @@ The following options are available as environment variable
 | `MARSTEK_FAKE_CLIENT_ID` | The fake id that shall be used by the script to obtain data from ct002 (default: cafecafecafe)  |
 | `CONNECTION_READ_TIMEOUT` | Read timeout on the connection. If read doesn't succeed in this time, it will be aborted and retried in the next iteration) |
 | `MARSTEK_MSG_CHECKSUM` | Checksum of the message send to the ct002. See below for more details |
+| `MARSTEK_POWER_VALUE_DEBOUNCE` | Value for debouncing the power values. See below for more details |
 | `VERBOSE_PRINT` | Print read power values to stdout |
 
 
@@ -55,8 +56,11 @@ services:
 ### Message Checksum
 The messages send to the ct002 seem to have some kind of checksum in the very last byte. I didn't want to spent too much time to figure out how exactly this is calculated. This is why i added a brute force mechanism to the script (which just checks values until it finds the correct one if `MARSTEK_MSG_CHECKSUM` is not given in the configuration). It only takes a few minutes to do so. If you have the correct value you can also just set it via `MARSTEK_MSG_CHECKSUM` to avoid the the brute forcing of the value on every start up
 
-### Debouncing
+### MQTT Publish Debouncing
 The power values are only published via mqtt if they are changed or after 20 iterations. If the script fails to obtain the value from the power meter, the values will be updated on the next iteration.
+
+### Power Value Debouncing
+The value given is used to debounce the power values. If the power value changes only within the given value the mqtt value is not updated until the next update is forced by the mqtt pulish iteration.
 
 ## Related work
 There is some related repos which its worth looking into:
