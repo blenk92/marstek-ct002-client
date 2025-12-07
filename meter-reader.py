@@ -131,7 +131,7 @@ class PowerMeter:
             return True
         if new_C -2 <= self.C and self.C <= new_C + 2:
             return True
-        if new_ALL -2 <= self.ALL and self.ALL <= new_ALL + 2:
+        if new_ALL -2 <= self.All and self.All <= new_ALL + 2:
             return True
 
         return False
