@@ -101,16 +101,20 @@ if __name__ == "__main__":
 
     mqttc = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, MQTT_CLIENT_ID)
     mqttc.username_pw_set(MQTT_USER, MQTT_PASS)
+
+    mqttc.will_set(f"marstek-power-meter/{MARSTEK_METER_ID}/availability", payload="offline", qos=2, retain=True)
+
     mqttc.connect(MQTT_HOST, int(MQTT_PORT), 60)
 
     mqttc.loop_start()
+    mqttc.publish(f"marstek-power-meter/{MARSTEK_METER_ID}/availability", "online", qos=2, retain=True)
     while True:
         update_needed = pm.update()
         if update_needed:
-            mqttc.publish(f"marstek-power-meter/{MARSTEK_METER_ID}/A", pm.A, qos=2)
-            mqttc.publish(f"marstek-power-meter/{MARSTEK_METER_ID}/B", pm.B, qos=2)
-            mqttc.publish(f"marstek-power-meter/{MARSTEK_METER_ID}/C", pm.C, qos=2)
-            mqttc.publish(f"marstek-power-meter/{MARSTEK_METER_ID}/ALL", pm.All, qos=2)
+            mqttc.publish(f"marstek-power-meter/{MARSTEK_METER_ID}/A", pm.A, qos=1)
+            mqttc.publish(f"marstek-power-meter/{MARSTEK_METER_ID}/B", pm.B, qos=1)
+            mqttc.publish(f"marstek-power-meter/{MARSTEK_METER_ID}/C", pm.C, qos=1)
+            mqttc.publish(f"marstek-power-meter/{MARSTEK_METER_ID}/ALL", pm.All, qos=1)
         time.sleep(0.3)
 
     mqttc.loop_stop()
