@@ -124,6 +124,19 @@ class PowerMeter:
         sock.close() 
         return A, B, C, ALL
 
+    def __power_value_debounce(self, new_A, new_B, new_C, new_ALL):
+        if new_A -2 <= self.A and self.A <= new_A + 2:
+            return True
+        if new_B -2 <= self.B and self.B <= new_B + 2:
+            return True
+        if new_C -2 <= self.C and self.C <= new_C + 2:
+            return True
+        if new_ALL -2 <= self.ALL and self.ALL <= new_ALL + 2:
+            return True
+
+        return False
+
+
     def update(self):
         A, B, C, All = self._read_power_meter(self.message)
 
@@ -150,10 +163,13 @@ class PowerMeter:
         if not update_needed:
             self.update_counter += 1
         else:
-            self.A = A
-            self.B = B
-            self.C = C
-            self.All = All
+            if self.__power_value_debounce(A, B, C, All):
+                update_needed = False
+            else:
+                self.A = A
+                self.B = B
+                self.C = C
+                self.All = All
 
         if self.update_counter >= 20:
             self.update_counter = 0
