@@ -1,9 +1,9 @@
 import socket
-import binascii
 import time
 import paho.mqtt.client as mqtt
 import os
-
+import copy
+import json
 
 MQTT_USER = os.getenv("MQTT_USER")
 MQTT_PASS = os.getenv("MQTT_PASS")
@@ -16,6 +16,57 @@ MARSTEK_FAKE_CLIENT_ID = os.getenv("MARSTEK_FAKE_CLIENT_ID") or "cafecafecafe"
 CONNECTION_READ_TIMEOUT = float(os.getenv("CONNECTION_READ_TIMEOUT") or 0.5)
 MARSTEK_MSG_CHECKSUM = os.getenv("MARSTEK_MSG_CHECKSUM") 
 VERBOSE_PRINT = bool(os.getenv("VERBOSE_PRINT"))
+
+class HA_CONFIG:
+    HA_CONFIG_TEMPLATE = {
+        "name": "Phase {PHASE}",
+        "device_class": "power",
+        "state_topic": "marstek-power-meter/{ID}/{PHASE}",
+        "unit_of_measurement": "W",
+        "state_class": "measurement",
+        "availability": [
+            {
+                "topic": "marstek-power-meter/{ID}/availability",
+                "payload_available": "online",
+                "payload_not_available": "offline"
+            }
+        ],
+        "unique_id": "{ID}_power_{PHASE}",
+        "device": {
+            "ids": [
+                "hame_energy_{ID}"
+            ],
+            "name": "Marstek HME-4 {ID}",
+            "model_id": "HME-4",
+            "manufacturer": "HAME Energy"
+        },
+        "origin": {
+            "name": "marstek-ct002-client",
+            "url": "https://github.com/blenk92/marstek-ct002-client"
+        }
+    }
+
+    def __init__(self, PHASE, ID):
+        self.PHASE = PHASE
+        self.ID = ID
+        self.config = copy.deepcopy(self.HA_CONFIG_TEMPLATE)
+
+        self.config["name"] = self.config["name"].format(PHASE=PHASE)
+        self.config["state_topic"] = self.config["state_topic"].format(PHASE=PHASE, ID=ID)
+        self.config["availability"][0]["topic"] = self.config["availability"][0]["topic"].format(PHASE=PHASE, ID=ID)
+        self.config["unique_id"] = self.config["unique_id"].format(PHASE=PHASE, ID=ID)
+        self.config["device"]["ids"][0] = self.config["device"]["ids"][0].format(PHASE=PHASE, ID=ID)
+        self.config["device"]["name"] = self.config["device"]["name"].format(PHASE=PHASE, ID=ID)
+
+    def get_str(self):
+        return json.dumps(self.config)
+
+
+
+HA_CONFIG_A = HA_CONFIG("A", MARSTEK_METER_ID)
+HA_CONFIG_B = HA_CONFIG("B", MARSTEK_METER_ID)
+HA_CONFIG_C = HA_CONFIG("C", MARSTEK_METER_ID)
+HA_CONFIG_ALL = HA_CONFIG("ALL", MARSTEK_METER_ID)
 
 
 class PowerMeter:
@@ -107,7 +158,17 @@ if __name__ == "__main__":
     mqttc.connect(MQTT_HOST, int(MQTT_PORT), 60)
 
     mqttc.loop_start()
+    
+    # Availability
     mqttc.publish(f"marstek-power-meter/{MARSTEK_METER_ID}/availability", "online", qos=2, retain=True)
+    
+    # HA config
+    mqttc.publish(f"homeassistant/sensor/HME-4_{MARSTEK_METER_ID}/{MARSTEK_METER_ID}_power_A/config", HA_CONFIG_A.get_str() , qos=2, retain=True)
+    mqttc.publish(f"homeassistant/sensor/HME-4_{MARSTEK_METER_ID}/{MARSTEK_METER_ID}_power_B/config", HA_CONFIG_B.get_str() , qos=2, retain=True)
+    mqttc.publish(f"homeassistant/sensor/HME-4_{MARSTEK_METER_ID}/{MARSTEK_METER_ID}_power_C/config", HA_CONFIG_C.get_str() , qos=2, retain=True)
+    mqttc.publish(f"homeassistant/sensor/HME-4_{MARSTEK_METER_ID}/{MARSTEK_METER_ID}_power_ALL/config", HA_CONFIG_ALL.get_str() , qos=2, retain=True)
+    
+    # Power Values
     while True:
         update_needed = pm.update()
         if update_needed:
