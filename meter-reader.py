@@ -83,6 +83,9 @@ class PowerMeter:
         else:
             self.message = self.message + checksum
 
+        self.error_read_count = 0
+        self.availability = "offline"
+
 
     def _brute_checksum(self):
         # Not sure how the last byte is calcualted, but we can simply brute force it
@@ -128,8 +131,19 @@ class PowerMeter:
             print("Couldn't read power meter")
             # If we can not read a packet lets retransmit the next reading no matter what
             self.update_counter = 99
-            return False
+            self.error_read_count += 1
+
+            if self.error_read_count >= 3:
+                self.availability = "offline"
+            return False, True
    
+        self.error_read_count = 0
+        if self.availability == "offline":
+            self.availability = "online"
+            availability_update_needed = True
+        else:
+            availability_update_needed = False
+
         if VERBOSE_PRINT:
             print(f"Read A: {A}, B: {B}, C: {C}, ALL: {All}")
         update_needed = (self.A, self.B, self.C, self.All) != (A, B, C, All)
@@ -145,7 +159,7 @@ class PowerMeter:
             self.update_counter = 0
             update_needed = True
 
-        return update_needed
+        return update_needed, availability_update_needed
 
 if __name__ == "__main__":    
     pm = PowerMeter(MARSTEK_METER_IP, MARSTEK_METER_ID, MARSTEK_MSG_CHECKSUM)
@@ -170,12 +184,15 @@ if __name__ == "__main__":
     
     # Power Values
     while True:
-        update_needed = pm.update()
+        update_needed, availability_update_needed = pm.update()
         if update_needed:
             mqttc.publish(f"marstek-power-meter/{MARSTEK_METER_ID}/A", pm.A, qos=1)
             mqttc.publish(f"marstek-power-meter/{MARSTEK_METER_ID}/B", pm.B, qos=1)
             mqttc.publish(f"marstek-power-meter/{MARSTEK_METER_ID}/C", pm.C, qos=1)
             mqttc.publish(f"marstek-power-meter/{MARSTEK_METER_ID}/ALL", pm.All, qos=1)
+        if availability_update_needed:
+            mqttc.publish(f"marstek-power-meter/{MARSTEK_METER_ID}/availability", pm.availability, qos=2, retain=True)
+
         time.sleep(0.3)
 
     mqttc.loop_stop()

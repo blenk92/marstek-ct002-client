@@ -10,6 +10,7 @@ Mqtt topics:
 | `marstek-power-meter/<power meter id>/B` | Value of B phase in Watt |
 | `marstek-power-meter/<power meter id>/C` | Value of C phase in Watt |
 | `marstek-power-meter/<power meter id>/ALL` | Total value of all phases in Watt |
+| `marstek-power-meter/<power meter id>/availability` | `online` if script is running and has connection to the power meter, else `offline` |
 
 
 ## Configuration
@@ -53,6 +54,9 @@ services:
 
 ### Message Checksum
 The messages send to the ct002 seem to have some kind of checksum in the very last byte. I didn't want to spent too much time to figure out how exactly this is calculated. This is why i added a brute force mechanism to the script (which just checks values until it finds the correct one if `MARSTEK_MSG_CHECKSUM` is not given in the configuration). It only takes a few minutes to do so. If you have the correct value you can also just set it via `MARSTEK_MSG_CHECKSUM` to avoid the the brute forcing of the value on every start up
+
+### Debouncing
+The power values are only published via mqtt if they are changed or after 20 iterations. If the script fails to obtain the value from the power meter, the values will be updated on the next iteration.
 
 ## Related work
 There is some related repos which its worth looking into:
