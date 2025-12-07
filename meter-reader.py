@@ -26,7 +26,7 @@ class PowerMeter:
         self.All = 0
         self.update_counter = 0
         self.ip = ip
-        self.message = f"\x01\x0249|HMJ-3|cafecafecafe|HME-4|{meter_id}|A|0\x03"
+        self.message = f"\x01\x0249|HMJ-3|{MARSTEK_FAKE_CLIENT_ID}|HME-4|{meter_id}|A|0\x03"
         if not checksum:
             self._brute_checksum()
         else:
