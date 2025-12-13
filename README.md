@@ -11,6 +11,10 @@ Mqtt topics:
 | `marstek-power-meter/<power meter id>/C` | Value of C phase in Watt |
 | `marstek-power-meter/<power meter id>/ALL` | Total value of all phases in Watt |
 | `marstek-power-meter/<power meter id>/availability` | `online` if script is running and has connection to the power meter, else `offline` |
+| `homeassistant/sensor/HME-4_<power meter id>/<power meter id>_power_A/config"` | Config for home assistant auto discovery |
+| `homeassistant/sensor/HME-4_<power meter id>/<power meter id>_power_B/config"` | Config for home assistant auto discovery |
+| `homeassistant/sensor/HME-4_<power meter id>/<power meter id>_power_C/config"` | Config for home assistant auto discovery |
+| `homeassistant/sensor/HME-4_<power meter id>/<power meter id>_power_ALL/config"` | Config for home assistant auto discovery |
 
 
 ## Configuration
